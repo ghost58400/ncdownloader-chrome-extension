@@ -19,19 +19,22 @@ function download(url) {
 			return;
 		}
 
+		var formData = new FormData();
+		formData.append('url', url);
+		if (url.includes('youtube.com') || url.includes('youtu.be')) {
+			formData.append('type', 'ytdl');
+			formData.append('options[extension]', 'webm');
+		} else {
+			formData.append('type', 'aria2');
+		}
+
 		var requestOptions = {
 			method: 'POST',
 			redirect: 'follow',
 			headers: {
 				Authorization: 'Basic ' + result.data.token,
 			},
-			body: (() => {
-			        const formData = new FormData();
-			        formData.append('url', url);
-			        formData.append('type', 'ytdl');
-			        formData.append('options[extension]', 'webm');
-			        return formData;
-			    })(),
+			body: formData,
 			credentials: 'omit',
 		};
 		
