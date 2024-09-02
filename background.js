@@ -1,13 +1,5 @@
 chrome.runtime.onMessage.addListener(handleMessage);
 
-let contextMenuItem = {
-	id: 'ncdl',
-	title: 'Send to NCDownloader',
-	contexts: ['link'],
-};
-
-checkLoggedIn();
-
 function handleMessage(msg) {
 	switch (msg.type) {
 		case 'login': {
@@ -18,24 +10,7 @@ function handleMessage(msg) {
 			download(msg.url);
 			break;
 		}
-		case 'loggedout': {
-			checkLoggedIn();
-			break;
-		}
 	}
-}
-
-function checkLoggedIn() {
-	chrome.storage.local.get(['data']).then((result) => {
-		if (result.data === undefined) {
-			chrome.contextMenus.removeAll();
-		} else {
-			chrome.contextMenus.create(contextMenuItem);
-			chrome.contextMenus.onClicked.addListener(function (data) {
-				download(data.linkUrl);
-			});
-		}
-	});
 }
 
 function download(url) {
@@ -78,7 +53,6 @@ function login(url, username, password) {
 				console.log('granted');
 
 				chrome.storage.local.set({ data: {server: url, token: btoa(username + ":" + password)} });
-				checkLoggedIn();
 				chrome.runtime.sendMessage({
 					type: 'loggedin',
 				});
@@ -87,3 +61,15 @@ function login(url, username, password) {
 		}
 	);
 }
+
+chrome.runtime.onInstalled.addListener( () => {
+    chrome.contextMenus.create({
+        id: 'ncdl',
+	title: 'Send to NCDownloader',
+	contexts: ['link'],
+    });
+});
+
+chrome.contextMenus.onClicked.addListener( ( data, tab ) => {
+	download(data.linkUrl);
+} );
