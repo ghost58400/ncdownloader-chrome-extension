@@ -32,6 +32,7 @@ function download(url) {
 			        formData.append('options[extension]', 'webm');
 			        return formData;
 			    })(),
+			credentials: 'omit',
 		};
 		
 		fetch(result.data.server + 'apps/ncdownloader/api/v1/download', requestOptions).catch(
