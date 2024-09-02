@@ -60,7 +60,7 @@ function download(url) {
 			    })(),
 		};
 		
-		fetch(result.data.server + '/apps/ncdownloader/api/v1/download', requestOptions).catch(
+		fetch(result.data.server + 'apps/ncdownloader/api/v1/download', requestOptions).catch(
 			(error) => console.log('error', error)
 		);
 	});
