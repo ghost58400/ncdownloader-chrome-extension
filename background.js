@@ -49,7 +49,6 @@ function download(url) {
 			redirect: 'follow',
 			headers: {
 				Authorization: 'Basic ' + result.data.token,
-				'Content-Type': 'multipart/form-data',
 			},
 			body: (() => {
 			        const formData = new FormData();
