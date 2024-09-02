@@ -11,7 +11,7 @@ checkLoggedIn();
 function handleMessage(msg) {
 	switch (msg.type) {
 		case 'login': {
-			login(msg.url);
+			login(msg.url, msg.username, msg.password);
 			break;
 		}
 		case 'download': {
@@ -48,24 +48,19 @@ function download(url) {
 			method: 'POST',
 			redirect: 'follow',
 			headers: {
-				Authorization: 'Bearer ' + result.data.appPassword,
-				'Content-Type': 'application/json',
+				Authorization: 'Basic ' + result.data.token,
+				'Content-Type': 'multipart/form-data',
 			},
-			body: JSON.stringify({
-				'text-input-value': url,
-				type: 'aria2',
-				torrentfile: '',
-				_path: '',
-			}),
+			body: new FormData().append('url', url).append('type', 'ytdl').append('options[extension]', 'webm'),
 		};
-
-		fetch(result.data.server + '/apps/ncdownloader/new', requestOptions).catch(
+		
+		fetch(result.data.server + '/apps/ncdownloader/api/v1/download', requestOptions).catch(
 			(error) => console.log('error', error)
 		);
 	});
 }
 
-function login(url) {
+function login(url, username, password) {
 	if (url.charAt(url.length - 1) != '/') {
 		url += '/';
 	}
@@ -76,59 +71,14 @@ function login(url) {
 		(granted) => {
 			if (granted) {
 				console.log('granted');
-				var requestOptions = {
-					method: 'POST',
-					redirect: 'follow',
-				};
 
-				fetch(url + 'index.php/login/v2', requestOptions)
-					.then((response) => response.json())
-					.then((result) => {
-						pollLoginData(result.poll.endpoint, result.poll.token, 0);
-						chrome.tabs.create({ url: result.login });
-					})
-					.catch((error) => console.log('error', error));
+				chrome.storage.local.set({ data: {server: url, token: base64.encode(username + ":" + password)} });
+				checkLoggedIn();
+				chrome.runtime.sendMessage({
+					type: 'loggedin',
+				});
+				
 			}
 		}
 	);
-}
-
-async function pollLoginData(url, token, tries) {
-	if (tries >= 30) {
-		return;
-	}
-
-	var requestOptions = {
-		method: 'POST',
-		redirect: 'follow',
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded',
-		},
-		body: 'token=' + token,
-	};
-
-	fetch(url, requestOptions)
-		.then(async (response) => {
-			if (response.status === 404) {
-				await Sleep(5000);
-				pollLoginData(url, token, (tries += 1));
-				return undefined;
-			}
-			return response.json();
-		})
-		.then((result) => {
-			if (result === undefined) {
-				return;
-			}
-			chrome.storage.local.set({ data: result });
-			checkLoggedIn();
-			chrome.runtime.sendMessage({
-				type: 'loggedin',
-			});
-		})
-		.catch((error) => console.log('error', error));
-}
-
-function Sleep(milliseconds) {
-	return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
