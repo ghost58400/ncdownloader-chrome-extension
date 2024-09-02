@@ -72,7 +72,7 @@ function login(url, username, password) {
 			if (granted) {
 				console.log('granted');
 
-				chrome.storage.local.set({ data: {server: url, token: base64.encode(username + ":" + password)} });
+				chrome.storage.local.set({ data: {server: url, token: btoa(username + ":" + password)} });
 				checkLoggedIn();
 				chrome.runtime.sendMessage({
 					type: 'loggedin',
