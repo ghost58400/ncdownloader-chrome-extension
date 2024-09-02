@@ -51,7 +51,13 @@ function download(url) {
 				Authorization: 'Basic ' + result.data.token,
 				'Content-Type': 'multipart/form-data',
 			},
-			body: new FormData().append('url', url).append('type', 'ytdl').append('options[extension]', 'webm'),
+			body: (() => {
+			        const formData = new FormData();
+			        formData.append('url', url);
+			        formData.append('type', 'ytdl');
+			        formData.append('options[extension]', 'webm');
+			        return formData;
+			    })(),
 		};
 		
 		fetch(result.data.server + '/apps/ncdownloader/api/v1/download', requestOptions).catch(
